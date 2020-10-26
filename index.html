@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            padding: 20px
+        }
+
+        .container{
+            display:block;
+            width:100%;
+        }
+
+        label{
+            font-size: 40px;
+        }
+
+        input[type=checkbox] {
+            transform: scale(2.5);
+        }
+    </style>
+</head>
+<body>
+
+    <button>
+        download
+    </button>
+
+    <div id="rum">
+
+    </div>
+
+    <script>
+        rum = ["1:01", "1:02", "3:03"]
+        rum.forEach(element => {
+            document.getElementById("rum").innerHTML += `<label class='container'> ${element} <input type='checkbox' checked='checked'> <span class='checkmark'></span> </label>`
+        });      
+    </script>
+
+</body>
+</html>
