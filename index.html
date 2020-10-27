@@ -6,39 +6,128 @@
     <title>Document</title>
     <style>
         body{
-            padding: 20px
+            margin: 0px;
+            padding: 20px;
+            height: 100%;
+            width: 100%;
+            grid-gap: 20px;
+            box-sizing: border-box;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content 1fr;
+        }
+
+        html{
+            height: 100%;
+        }
+
+        #button{
+            padding: 20px;
+            font-size: 30px;
+            background-color: gray;
+            justify-self: start;
+        }
+
+        #button:hover{
+            padding: 20px;
+            font-size: 30px;
+            background-color: rgb(0, 128, 0);
+
         }
 
         .container{
-            display:block;
+            box-sizing: border-box;
+            grid-template-columns: min-content min-content;
+            display: grid;
             width:100%;
         }
 
+        .container > span{
+            padding: 0px 20px;
+            background-color: gray;
+            text-align: center;
+            width: 70px;
+        }
         label{
-            font-size: 40px;
+            font-size: 30px;
+            line-height: 40px;
         }
 
         input[type=checkbox] {
-            transform: scale(2.5);
+            display: none;
+        }
+
+        input[type=checkbox]:checked + span {
+            background-color: green;
+        }
+        
+        #rum{
+            display: grid;
+            grid-template-columns: min-content min-content min-content min-content;
+            grid-template-rows: 1fr;
+            height: 100%;
+            grid-gap: 30px;
+        }
+
+        .vaning{
+            height: 100%;
+            width: 100%;
+            display: grid;
+            grid-gap: 5px;
+            grid-auto-flow: column;
+            grid-template-rows: repeat(auto-fit,40px);
         }
     </style>
 </head>
 <body>
 
-    <button>
-        download
+    <button id="button">
+        DOWNLOAD
     </button>
 
     <div id="rum">
+        <div id="vaning1" class="vaning">
+        </div>
 
+        <div id="vaning2" class="vaning">
+        </div>
+
+        <div id="vaning3" class="vaning">
+        </div>
+
+        <div id="vaning4" class="vaning">
+        </div>
     </div>
 
     <script>
-        rum = ["1:01", "1:02", "3:03"]
-        rum.forEach(element => {
-            document.getElementById("rum").innerHTML += `<label class='container'> ${element} <input type='checkbox' checked='checked'> <span class='checkmark'></span> </label>`
-        })
-    </script>
+        var xmlhttp = new XMLHttpRequest();
+        var url = "http://localhost:3000/rum";
 
+        xmlhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var rum = JSON.parse(this.responseText);
+                console.log(rum)
+                rum.forEach(element => {
+                    if (element.charAt(0) == "1"){
+                        document.getElementById("vaning1").innerHTML += `<label class='container'> <input type='checkbox'> <span> ${element} </span> </label>`
+                    }
+                    else if (element.charAt(0) == "2"){
+                        document.getElementById("vaning2").innerHTML += `<label class='container'> <input type='checkbox'> <span> ${element} </span> </label>`
+
+                    }
+                    else if (element.charAt(0) == "3"){
+                        document.getElementById("vaning3").innerHTML += `<label class='container'> <input type='checkbox'> <span> ${element} </span> </label>`
+
+                    }
+                    else if (element.charAt(0) == "4"){
+                        document.getElementById("vaning4").innerHTML += `<label class='container'> <input type='checkbox'> <span> ${element} </span> </label>`
+
+                    }
+                })
+            }
+        };
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
+    </script>
 </body>
 </html>
