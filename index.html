@@ -128,6 +128,13 @@
         };
         xmlhttp.open("GET", url, true);
         xmlhttp.send();
+
+        document.getElementById("button").addEventListener("click", function (e) {
+            selected_rooms = Array.from(document.querySelectorAll("input:checked + span")).map(function (item) {
+                return item.innerHTML;
+            })
+            alert(JSON.stringify(selected_rooms))
+        })
     </script>
 </body>
 </html>
