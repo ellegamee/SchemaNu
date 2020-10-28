@@ -165,11 +165,14 @@
 
             dropdown = document.getElementById("dropdown")
             selected_week = dropdown.options[dropdown.selectedIndex].value
-
             all = [selected_rooms, selected_week]
-            alert(JSON.stringify(all))
 
-            var download_pdf = new XMLHttpRequest();
+            const link = document.createElement('a');
+            link.download = 'nice.pdf'
+            link.href = 'http://localhost:3000/download_pdf?list=' + encodeURIComponent(JSON.stringify(all));
+            link.click();
+
+            /* var download_pdf = new XMLHttpRequest();
             download_pdf.open("POST", "http://localhost:3000/download_pdf", true);
             download_pdf.setRequestHeader("Content-Type", "application/json");
             download_pdf.onreadystatechange = function() {
@@ -178,7 +181,7 @@
                     console.log("Servern har svarat tillbaka!")
                 }
             };
-            download_pdf.send(JSON.stringify(all));
+            download_pdf.send(JSON.stringify(all)); */
         })
 
         

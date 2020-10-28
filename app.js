@@ -24,11 +24,12 @@ app.get("/rum", async function(req, res) {
     await page.goto(
         "https://web.skola24.se/timetable/timetable-viewer/norrkoping.skola24.se/Ebersteinska gymnasiet"
     );
-    await sleep(2000);
+    await sleep(1500)
 
     // Open up list of rooms
     await page.click("div[data-identifier=SalSelection] > .w-arrow");
-    await sleep(2000);
+    await page.waitForSelector('div[data-identifier="SalSelection"] >  ul > li')
+    await sleep(500)
     rooms = await page.evaluate(() => Array.from(document.querySelectorAll('div[data-identifier="SalSelection"] >  ul > li'), (element) => element.getAttribute("data-text")))
     
     rooms = rooms.filter(function(room) {
@@ -44,11 +45,12 @@ app.get("/veckor", async function(req, res) {
   await page.goto(
       "https://web.skola24.se/timetable/timetable-viewer/norrkoping.skola24.se/Ebersteinska gymnasiet"
   );
-  await sleep(2000);
+  await sleep(1500);
 
   // Open up list of weeks
   await page.click("div[data-identifier=weekSelection] > .w-arrow");
-  await sleep(2000);
+  await page.waitForSelector('div[data-identifier="weekSelection"] >  ul > li')
+  await sleep(500)
   weeks = await page.evaluate(() => Array.from(document.querySelectorAll('div[data-identifier="weekSelection"] >  ul > li'), (element) => element.getAttribute("data-text")))
   
   console.log(weeks)
@@ -59,77 +61,73 @@ function downloadpdf(rumname, week, index){
     return new Promise(async function(resolve, reject){
         await sleep(index * 2000);
         
-        const browser = await pptrFirefox.launch({ headless: true });
+        const browser = await pptrFirefox.launch({ headless: false });
         const page = await browser.newPage();
 
         await page.goto(
             "https://web.skola24.se/timetable/timetable-viewer/norrkoping.skola24.se/Ebersteinska gymnasiet"
         );
-        await sleep(3000);
+        //await page.waitForSelector("div[data-identifier=SalSelection] > .w-arrow")
+        await sleep(1500)
 
         // Open up list of rooms
         await page.click("div[data-identifier=SalSelection] > .w-arrow");
-        await sleep(2000);
+        await page.waitForSelector(`div[data-identifier=SalSelection] > ul > li[data-text="${rumname}"] > a`)
 
         // Click on a room
         await page.click(
         `div[data-identifier=SalSelection] > ul > li[data-text="${rumname}"] > a`
         );
-        await sleep(3000);
 
-        // Open up list of weeks
+        await sleep(1500)
         await page.click("div[data-identifier=weekSelection] > .w-arrow");
-        await sleep(2000);
+        await page.waitForSelector(`div[data-identifier=weekSelection] > ul > li[data-text="${week}"] > a`)
 
         // Click on a week
         await page.click(
         `div[data-identifier=weekSelection] > ul > li[data-text="${week}"] > a`
         );
-        await sleep(3000);
+        await page.waitForSelector("body > div.w-widget-timetable-viewer > div.w-page-header > div > div > div > div:nth-child(1) > button")
 
         // Click on the open menu icon
         await page.click(
         "body > div.w-widget-timetable-viewer > div.w-page-header > div > div > div > div:nth-child(1) > button"
         );
-        await sleep(2000);
+        await page.waitForSelector("body > div.w-widget-timetable-viewer > div.w-page-header > div > div > div > div:nth-child(1) > ul > li:nth-child(1) > a > div")
 
         // Click on download button
         await page.click(
         "body > div.w-widget-timetable-viewer > div.w-page-header > div > div > div > div:nth-child(1) > ul > li:nth-child(1) > a > div"
         );
-        await sleep(2000);
+        await page.waitForSelector("body > div.w-widget-timetable-viewer > div.w-page-content > div > div.w-modal.w-print.open > div > div > div.w-modal-body > div > button:nth-child(4)")
 
         // Click on hämta pdf button
         await page.click(
         "body > div.w-widget-timetable-viewer > div.w-page-content > div > div.w-modal.w-print.open > div > div > div.w-modal-body > div > button:nth-child(4)"
         );
-        await sleep(2000);
-
-        // Click on avbryt button
-        await page.click(
-        "body > div.w-widget-timetable-viewer > div.w-page-content > div > div.w-modal.w-print.open > div > div > div.w-modal-body > div > button:nth-child(5)"
-        );
-        await sleep(2000);
+        await page.waitForSelector("body > div.w-widget-timetable-viewer > div.w-page-content > div > div.w-modal.w-print.open > div > div > div.w-modal-body > div > button:nth-child(5)")
+        await sleep(3000);
         await browser.close();
         resolve()
     })
 }
 
-app.post("/download_pdf", async function(req, res) {
-    console.log(req.body)
+app.get("/download_pdf", async function(req, res) {
+    console.log(req.query.list)
 
     actions = []
+    var inputlist = JSON.parse(req.query.list)
 
-    req.body[0].forEach(async (rumname, index) => {
-        actions.push(downloadpdf(rumname, req.body[1], index))
+    inputlist[0].forEach(async (rumname, index) => {
+        actions.push(downloadpdf(rumname, inputlist[1], index))
     });
 
     await Promise.all(actions)
 
-    glob("C:/Users/ELLEGAME/Downloads/Schema*.pdf", function (er, files) {
+    glob("C:/Users/ELLEGAME/Downloads/Schema*.pdf", (er, files) => {
         console.log(files)
         if (files.length > 1){
-            merge(files, "C:/Users/ELLEGAME/Desktop/Scheman/combined_schema.pdf", function (error) {
+            merge(files, "C:/Users/ELLEGAME/Downloads/combined_schema.pdf", function (error) {
                 if (error){
                     console.log(error)
                 }
@@ -144,8 +142,11 @@ app.post("/download_pdf", async function(req, res) {
         }
 
         else{
-            fs.renameSync(files[0], "C:/Users/ELLEGAME/Desktop/Scheman/combined_schema.pdf")
+            fs.renameSync(files[0], "C:/Users/ELLEGAME/Downloads/combined_schema.pdf")
         }
+
+        res.header("Content-Disposition", "attachment; filename=allascheman.pdf")
+        res.sendFile("C:/Users/ELLEGAME/Downloads/combined_schema.pdf");
     })
 })
 
