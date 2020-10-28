@@ -57,29 +57,33 @@ app.get("/veckor", async function(req, res) {
   res.send(JSON.stringify(weeks))
 })
 
-function downloadpdf(rumname, week, index){
-    return new Promise(async function(resolve, reject){
-        await sleep(index * 2000);
-        
-        const browser = await pptrFirefox.launch({ headless: false });
-        const page = await browser.newPage();
+app.get("/download_pdf", async function(req, res) {
+    console.log(req.query.list)
+    var inputlist = JSON.parse(req.query.list)
+    var week = inputlist[1]
 
-        await page.goto(
-            "https://web.skola24.se/timetable/timetable-viewer/norrkoping.skola24.se/Ebersteinska gymnasiet"
-        );
-        //await page.waitForSelector("div[data-identifier=SalSelection] > .w-arrow")
-        await sleep(1500)
+    const browser = await pptrFirefox.launch({ headless: false });
+    const page = await browser.newPage();
 
+    await page.goto(
+        "https://web.skola24.se/timetable/timetable-viewer/norrkoping.skola24.se/Ebersteinska gymnasiet"
+    );
+    //await page.waitForSelector("div[data-identifier=SalSelection] > .w-arrow")
+    await sleep(2500)
+    
+    for(i = 0; i < inputlist[0].length; i++){
+        rumname = inputlist[0][i]
         // Open up list of rooms
+        await page.waitForSelector("div[data-identifier=SalSelection] > .w-arrow")
         await page.click("div[data-identifier=SalSelection] > .w-arrow");
         await page.waitForSelector(`div[data-identifier=SalSelection] > ul > li[data-text="${rumname}"] > a`)
-
+        
         // Click on a room
         await page.click(
         `div[data-identifier=SalSelection] > ul > li[data-text="${rumname}"] > a`
         );
 
-        await sleep(1500)
+        await sleep(2500)
         await page.click("div[data-identifier=weekSelection] > .w-arrow");
         await page.waitForSelector(`div[data-identifier=weekSelection] > ul > li[data-text="${week}"] > a`)
 
@@ -106,25 +110,18 @@ function downloadpdf(rumname, week, index){
         "body > div.w-widget-timetable-viewer > div.w-page-content > div > div.w-modal.w-print.open > div > div > div.w-modal-body > div > button:nth-child(4)"
         );
         await page.waitForSelector("body > div.w-widget-timetable-viewer > div.w-page-content > div > div.w-modal.w-print.open > div > div > div.w-modal-body > div > button:nth-child(5)")
-        await sleep(3000);
-        await browser.close();
-        resolve()
-    })
-}
+        
+        // Click on avbryt button
+        await page.click(
+            "body > div.w-widget-timetable-viewer > div.w-page-content > div > div.w-modal.w-print.open > div > div > div.w-modal-body > div > button:nth-child(5)"
+        );    
 
-app.get("/download_pdf", async function(req, res) {
-    console.log(req.query.list)
+        await sleep(2000);
 
-    actions = []
-    var inputlist = JSON.parse(req.query.list)
-
-    inputlist[0].forEach(async (rumname, index) => {
-        actions.push(downloadpdf(rumname, inputlist[1], index))
-    });
-
-    await Promise.all(actions)
-
-    glob("C:/Users/ELLEGAME/Downloads/Schema*.pdf", (er, files) => {
+    }
+    await sleep(2000);
+    await browser.close();
+    glob("C:/Users/ELLEGAME/Downloads/Schema*.pdf", async (er, files) => {
         console.log(files)
         if (files.length > 1){
             merge(files, "C:/Users/ELLEGAME/Downloads/combined_schema.pdf", function (error) {
@@ -145,8 +142,9 @@ app.get("/download_pdf", async function(req, res) {
             fs.renameSync(files[0], "C:/Users/ELLEGAME/Downloads/combined_schema.pdf")
         }
 
+        await sleep(1000)
         res.header("Content-Disposition", "attachment; filename=allascheman.pdf")
-        res.sendFile("C:/Users/ELLEGAME/Downloads/combined_schema.pdf");
+        res.sendFile("C:\\Users\\ELLEGAME\\Downloads\\combined_schema.pdf");
     })
 })
 
