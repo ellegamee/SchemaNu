@@ -28,6 +28,18 @@
             justify-self: start;
         }
 
+        #dropdown{
+            padding: 20px;
+            font-size: 30px;
+        }
+
+        #header{
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: min-content;
+            grid-gap: 20px;
+        }
+
         #button:hover{
             padding: 20px;
             font-size: 30px;
@@ -80,10 +92,16 @@
     </style>
 </head>
 <body>
+    <div id="header">
+        <button id="button">
+            DOWNLOAD
+        </button>
 
-    <button id="button">
-        DOWNLOAD
-    </button>
+        <select id="dropdown">
+
+        </select>
+    </div>
+    
 
     <div id="rum">
         <div id="vaning1" class="vaning">
@@ -100,41 +118,70 @@
     </div>
 
     <script>
-        var xmlhttp = new XMLHttpRequest();
-        var url = "http://localhost:3000/rum";
-
-        xmlhttp.onreadystatechange = function() {
+        var rumrequest = new XMLHttpRequest();
+        rumrequest.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
                 var rum = JSON.parse(this.responseText);
                 console.log(rum)
                 rum.forEach(element => {
                     if (element.charAt(0) == "1"){
-                        document.getElementById("vaning1").innerHTML += `<label class='container'> <input type='checkbox'> <span> ${element} </span> </label>`
+                        document.getElementById("vaning1").innerHTML += `<label class='container'> <input type='checkbox'> <span>${element}</span> </label>`
                     }
                     else if (element.charAt(0) == "2"){
-                        document.getElementById("vaning2").innerHTML += `<label class='container'> <input type='checkbox'> <span> ${element} </span> </label>`
+                        document.getElementById("vaning2").innerHTML += `<label class='container'> <input type='checkbox'> <span>${element}</span> </label>`
 
                     }
                     else if (element.charAt(0) == "3"){
-                        document.getElementById("vaning3").innerHTML += `<label class='container'> <input type='checkbox'> <span> ${element} </span> </label>`
+                        document.getElementById("vaning3").innerHTML += `<label class='container'> <input type='checkbox'> <span>${element}</span> </label>`
 
                     }
                     else if (element.charAt(0) == "4"){
-                        document.getElementById("vaning4").innerHTML += `<label class='container'> <input type='checkbox'> <span> ${element} </span> </label>`
+                        document.getElementById("vaning4").innerHTML += `<label class='container'> <input type='checkbox'> <span>${element}</span> </label>`
 
                     }
                 })
             }
         };
-        xmlhttp.open("GET", url, true);
-        xmlhttp.send();
+        rumrequest.open("GET", "http://localhost:3000/rum", true);
+        rumrequest.send();
+
+        var veckrequest = new XMLHttpRequest();
+        veckrequest.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var veckor = JSON.parse(this.responseText);
+                console.log(veckor)
+                veckor.forEach(element => {
+                    document.getElementById("dropdown").innerHTML += `<option value="${element}"> ${element} </option>`
+                })
+            }
+        };
+        veckrequest.open("GET", "http://localhost:3000/veckor", true);
+        veckrequest.send();
 
         document.getElementById("button").addEventListener("click", function (e) {
             selected_rooms = Array.from(document.querySelectorAll("input:checked + span")).map(function (item) {
                 return item.innerHTML;
             })
-            alert(JSON.stringify(selected_rooms))
+
+            dropdown = document.getElementById("dropdown")
+            selected_week = dropdown.options[dropdown.selectedIndex].value
+
+            all = [selected_rooms, selected_week]
+            alert(JSON.stringify(all))
+
+            var download_pdf = new XMLHttpRequest();
+            download_pdf.open("POST", "http://localhost:3000/download_pdf", true);
+            download_pdf.setRequestHeader("Content-Type", "application/json");
+            download_pdf.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    // var pdf = JSON.parse(this.responseText);
+                    console.log("Servern har svarat tillbaka!")
+                }
+            };
+            download_pdf.send(JSON.stringify(all));
         })
+
+        
     </script>
 </body>
 </html>

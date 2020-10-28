@@ -4,7 +4,9 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "easy-pdf-merge": "^0.2.5",
     "express": "^4.17.1",
+    "glob": "^7.1.6",
     "puppeteer": "^5.4.0"
   },
   "devDependencies": {},
