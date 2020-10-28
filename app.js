@@ -2,6 +2,7 @@ const pptrFirefox = require("puppeteer");
 var glob = require("glob")
 var merge = require("easy-pdf-merge")
 var fs = require("fs")
+var onFinished = require('on-finished')
 
 const express = require('express')
 const app = express()
@@ -141,6 +142,11 @@ app.get("/download_pdf", async function(req, res) {
         else{
             fs.renameSync(files[0], "C:/Users/ELLEGAME/Downloads/combined_schema.pdf")
         }
+
+        onFinished(res, function (err, res) {
+            fs.unlinkSync("C:/Users/ELLEGAME/Downloads/combined_schema.pdf")
+            // err contains the error if request error'd
+          })
 
         await sleep(1000)
         res.header("Content-Disposition", "attachment; filename=allascheman.pdf")
